@@ -1,21 +1,28 @@
-// server/routes/auth.js
 const express = require('express');
 const router = express.Router();
-const {
-  register,
-  login,
-  refresh,
-  logout,
-  getMe
-} = require('../controllers/authController');
-const { protect } = require('../middleware/auth');
+const { body } = require('express-validator');
+const authController = require('../controllers/authController');
+const auth = require('../middleware/auth');
 
-router.post('/register', register);
-router.post('/login', login);
-router.post('/refresh', refresh);
-router.post('/logout', protect, logout);
-router.get('/me', protect, getMe);
-router.get('/profile', protect, require('../controllers/authController').getProfile);
-router.put('/profile', protect, require('../controllers/authController').updateProfile);
+router.post(
+  '/register',
+  [
+    body('name').trim().notEmpty().withMessage('Name is required'),
+    body('email').isEmail().withMessage('Please provide a valid email'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+  ],
+  authController.register
+);
+
+router.post(
+  '/login',
+  [
+    body('email').isEmail().withMessage('Please provide a valid email'),
+    body('password').notEmpty().withMessage('Password is required')
+  ],
+  authController.login
+);
+
+router.get('/user', auth, authController.getUser);
 
 module.exports = router;
